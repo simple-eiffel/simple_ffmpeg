@@ -20,7 +20,6 @@
 			<void_safety support="all" use="all"/>
 		</capability>
 		<library name="base" location="$ISE_LIBRARY/library/base/base.ecf"/>
-		<library name="time" location="$ISE_LIBRARY/library/time/time.ecf"/>
 		<library name="simple_process" location="$SIMPLE_EIFFEL/simple_process/simple_process.ecf"/>
 		<library name="simple_file" location="$SIMPLE_EIFFEL/simple_file/simple_file.ecf"/>
 		<cluster name="src" location="./src/" recursive="false"/>
