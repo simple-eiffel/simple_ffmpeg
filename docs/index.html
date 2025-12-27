@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>simple_ffmpeg - FFmpeg Multimedia Library for Eiffel</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="images/logo.png" alt="simple_* logo" class="logo">
+        </div>
+        <h1>simple_ffmpeg</h1>
+        <p class="tagline">FFmpeg Multimedia Library for Eiffel</p>
+        <div class="badges">
+            <span class="badge badge-version">v1.0.0</span>
+            <span class="badge badge-license">MIT</span>
+        </div>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#quick-start">Quick Start</a></li>
+            <li><a href="#transcoding">Transcoding</a></li>
+            <li><a href="#decoding">Decoding</a></li>
+            <li><a href="#encoding">Encoding</a></li>
+            <li><a href="#api-reference">API Reference</a></li>
+            <li><a href="https://github.com/simple-eiffel/simple_ffmpeg">GitHub</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>
+                <strong>simple_ffmpeg</strong> provides high-level Eiffel bindings to FFmpeg's
+                libav* C libraries. It enables video/audio encoding, decoding, transcoding,
+                and metadata extraction with a clean, contract-driven API.
+            </p>
+            <p>
+                Part of the <a href="https://github.com/simple-eiffel">Simple Eiffel</a> ecosystem.
+            </p>
+        </section>
+
+        <section id="quick-start">
+            <h2>Quick Start</h2>
+
+            <h3>Installation</h3>
+            <ol>
+                <li>Install FFmpeg development libraries:
+<pre><code># Windows (vcpkg)
+vcpkg install ffmpeg:x64-windows
+
+# Linux
+sudo apt install libavcodec-dev libavformat-dev libavutil-dev libswscale-dev
+
+# macOS
+brew install ffmpeg</code></pre>
+                </li>
+                <li>Set environment variables:
+<pre><code>export FFMPEG_INCLUDE=/path/to/ffmpeg/include
+export FFMPEG_LIB=/path/to/ffmpeg/lib
+export SIMPLE_EIFFEL=/path/to/prod</code></pre>
+                </li>
+                <li>Add to your ECF file:
+<pre><code>&lt;library name="simple_ffmpeg" location="$SIMPLE_EIFFEL/simple_ffmpeg/simple_ffmpeg.ecf"/&gt;</code></pre>
+                </li>
+            </ol>
+
+            <h3>Basic Usage</h3>
+<pre><code><span class="keyword">local</span>
+    ffmpeg: <span class="type">SIMPLE_FFMPEG</span>
+<span class="keyword">do</span>
+    <span class="keyword">create</span> ffmpeg.make
+
+    <span class="comment">-- Get media info</span>
+    <span class="keyword">if</span> <span class="keyword">attached</span> ffmpeg.probe (<span class="string">"video.mp4"</span>) <span class="keyword">as</span> info <span class="keyword">then</span>
+        print (<span class="string">"Duration: "</span> + info.duration.out + <span class="string">" seconds%N"</span>)
+        print (<span class="string">"Resolution: "</span> + info.resolution_string + <span class="string">"%N"</span>)
+    <span class="keyword">end</span>
+
+    <span class="comment">-- Simple transcode</span>
+    <span class="keyword">if</span> ffmpeg.transcode (<span class="string">"input.avi"</span>, <span class="string">"output.mp4"</span>) <span class="keyword">then</span>
+        print (<span class="string">"Done%N"</span>)
+    <span class="keyword">end</span>
+<span class="keyword">end</span></code></pre>
+        </section>
+
+        <section id="transcoding">
+            <h2>Transcoding</h2>
+
+            <h3>With Options</h3>
+<pre><code><span class="keyword">local</span>
+    ffmpeg: <span class="type">SIMPLE_FFMPEG</span>
+    options: <span class="type">FFMPEG_OPTIONS</span>
+<span class="keyword">do</span>
+    <span class="keyword">create</span> ffmpeg.make
+    <span class="keyword">create</span> options.make
+
+    options := options
+        .set_video_codec (<span class="string">"libx265"</span>)
+        .set_resolution (1280, 720)
+        .set_video_bitrate (2_000_000)
+        .set_audio_codec (<span class="string">"aac"</span>)
+        .set_audio_bitrate (128_000)
+
+    ffmpeg.transcode_with_options (<span class="string">"input.mov"</span>, <span class="string">"output.mp4"</span>, options)
+<span class="keyword">end</span></code></pre>
+
+            <h3>Fluent Transcoder</h3>
+<pre><code><span class="keyword">local</span>
+    trans: <span class="type">FFMPEG_TRANSCODER</span>
+<span class="keyword">do</span>
+    <span class="keyword">create</span> trans.make (<span class="string">"input.mov"</span>, <span class="string">"output.mp4"</span>)
+    trans
+        .set_video_codec (<span class="string">"libx264"</span>)
+        .set_video_bitrate (2_000_000)
+        .set_resolution (1920, 1080)
+        .set_audio_codec (<span class="string">"aac"</span>)
+        .set_audio_bitrate (128_000)
+
+    <span class="keyword">if</span> trans.run <span class="keyword">then</span>
+        print (<span class="string">"Complete%N"</span>)
+    <span class="keyword">end</span>
+<span class="keyword">end</span></code></pre>
+
+            <h3>Presets</h3>
+<pre><code><span class="keyword">local</span>
+    options: <span class="type">FFMPEG_OPTIONS</span>
+<span class="keyword">do</span>
+    <span class="keyword">create</span> options.make
+
+    <span class="comment">-- Web-optimized (720p)</span>
+    options := options.preset_web
+
+    <span class="comment">-- Quality-focused</span>
+    options := options.preset_quality
+
+    <span class="comment">-- Stream copy (no re-encoding)</span>
+    options := options.copy_video.copy_audio
+<span class="keyword">end</span></code></pre>
+        </section>
+
+        <section id="decoding">
+            <h2>Frame-by-Frame Decoding</h2>
+<pre><code><span class="keyword">local</span>
+    ffmpeg: <span class="type">SIMPLE_FFMPEG</span>
+<span class="keyword">do</span>
+    <span class="keyword">create</span> ffmpeg.make
+    <span class="keyword">if</span> <span class="keyword">attached</span> ffmpeg.open_input (<span class="string">"video.mp4"</span>) <span class="keyword">as</span> decoder <span class="keyword">then</span>
+        <span class="keyword">from</span> <span class="keyword">until</span> <span class="keyword">not</span> decoder.read_video_frame <span class="keyword">loop</span>
+            <span class="keyword">if</span> <span class="keyword">attached</span> decoder.current_video_frame <span class="keyword">as</span> frame <span class="keyword">then</span>
+                print (<span class="string">"Frame "</span> + decoder.frame_number.out + <span class="string">"%N"</span>)
+                frame.save_as_jpeg (<span class="string">"frame.jpg"</span>, 90)
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+        decoder.close
+    <span class="keyword">end</span>
+<span class="keyword">end</span></code></pre>
+        </section>
+
+        <section id="encoding">
+            <h2>Encoding Video</h2>
+<pre><code><span class="keyword">local</span>
+    ffmpeg: <span class="type">SIMPLE_FFMPEG</span>
+    options: <span class="type">FFMPEG_ENCODER_OPTIONS</span>
+<span class="keyword">do</span>
+    <span class="keyword">create</span> ffmpeg.make
+    <span class="keyword">create</span> options.make (1920, 1080, 30.0)  <span class="comment">-- 1080p @ 30fps</span>
+
+    <span class="keyword">if</span> <span class="keyword">attached</span> ffmpeg.create_encoder (<span class="string">"output.mp4"</span>, options) <span class="keyword">as</span> encoder <span class="keyword">then</span>
+        <span class="keyword">from</span> i := 1 <span class="keyword">until</span> i > 300 <span class="keyword">loop</span>
+            <span class="keyword">create</span> frame.make_rgb (1920, 1080)
+            <span class="comment">-- Fill frame with pixel data...</span>
+            encoder.write_video_frame (frame)
+            i := i + 1
+        <span class="keyword">end</span>
+        encoder.finalize
+        encoder.close
+    <span class="keyword">end</span>
+<span class="keyword">end</span></code></pre>
+        </section>
+
+        <section id="api-reference">
+            <h2>API Reference</h2>
+
+            <h3>SIMPLE_FFMPEG (Facade)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>probe (file)</code></td>
+                        <td>Get media file info</td>
+                    </tr>
+                    <tr>
+                        <td><code>transcode (in, out)</code></td>
+                        <td>Convert with auto settings</td>
+                    </tr>
+                    <tr>
+                        <td><code>transcode_with_options (in, out, opts)</code></td>
+                        <td>Convert with explicit options</td>
+                    </tr>
+                    <tr>
+                        <td><code>extract_audio (video, audio)</code></td>
+                        <td>Extract audio track</td>
+                    </tr>
+                    <tr>
+                        <td><code>extract_frame (video, time, out)</code></td>
+                        <td>Extract frame at timestamp</td>
+                    </tr>
+                    <tr>
+                        <td><code>resize_video (in, out, w, h)</code></td>
+                        <td>Resize video</td>
+                    </tr>
+                    <tr>
+                        <td><code>open_input (file)</code></td>
+                        <td>Open for frame-by-frame decoding</td>
+                    </tr>
+                    <tr>
+                        <td><code>create_encoder (file, opts)</code></td>
+                        <td>Create encoder for output</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>FFMPEG_OPTIONS (Builder)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>set_video_codec (codec)</code></td>
+                        <td>libx264, libx265, libvpx-vp9, copy</td>
+                    </tr>
+                    <tr>
+                        <td><code>set_video_bitrate (bps)</code></td>
+                        <td>Video bitrate in bits/second</td>
+                    </tr>
+                    <tr>
+                        <td><code>set_resolution (w, h)</code></td>
+                        <td>Output width and height</td>
+                    </tr>
+                    <tr>
+                        <td><code>set_frame_rate (fps)</code></td>
+                        <td>Output frame rate</td>
+                    </tr>
+                    <tr>
+                        <td><code>set_audio_codec (codec)</code></td>
+                        <td>aac, libmp3lame, flac, copy</td>
+                    </tr>
+                    <tr>
+                        <td><code>set_audio_bitrate (bps)</code></td>
+                        <td>Audio bitrate in bits/second</td>
+                    </tr>
+                    <tr>
+                        <td><code>copy_video</code></td>
+                        <td>Stream copy video (no re-encoding)</td>
+                    </tr>
+                    <tr>
+                        <td><code>copy_audio</code></td>
+                        <td>Stream copy audio (no re-encoding)</td>
+                    </tr>
+                    <tr>
+                        <td><code>preset_web</code></td>
+                        <td>Web-optimized settings (720p)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>FFMPEG_MEDIA_INFO</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>duration</code></td>
+                        <td>REAL_64</td>
+                        <td>Duration in seconds</td>
+                    </tr>
+                    <tr>
+                        <td><code>video_width</code></td>
+                        <td>INTEGER</td>
+                        <td>Video width in pixels</td>
+                    </tr>
+                    <tr>
+                        <td><code>video_height</code></td>
+                        <td>INTEGER</td>
+                        <td>Video height in pixels</td>
+                    </tr>
+                    <tr>
+                        <td><code>video_codec</code></td>
+                        <td>STRING_32</td>
+                        <td>Video codec name</td>
+                    </tr>
+                    <tr>
+                        <td><code>audio_codec</code></td>
+                        <td>STRING_32</td>
+                        <td>Audio codec name</td>
+                    </tr>
+                    <tr>
+                        <td><code>audio_sample_rate</code></td>
+                        <td>INTEGER</td>
+                        <td>Sample rate in Hz</td>
+                    </tr>
+                    <tr>
+                        <td><code>audio_channels</code></td>
+                        <td>INTEGER</td>
+                        <td>Number of channels</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="supported-formats">
+            <h2>Supported Formats</h2>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>Containers</h3>
+                    <p>MP4, MKV, AVI, MOV, WebM, FLV, MPEG-TS</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Video Codecs</h3>
+                    <p>H.264, H.265/HEVC, VP8, VP9, AV1, MPEG-4</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Audio Codecs</h3>
+                    <p>AAC, MP3, FLAC, Opus, Vorbis, PCM</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>
+            <strong>simple_ffmpeg</strong> is part of the
+            <a href="https://github.com/simple-eiffel">Simple Eiffel</a> ecosystem.
+        </p>
+        <p>
+            <a href="https://github.com/simple-eiffel/simple_ffmpeg">GitHub</a> |
+            <a href="https://github.com/simple-eiffel/simple_ffmpeg/blob/main/LICENSE">MIT License</a>
+        </p>
+    </footer>
+</body>
+</html>
