@@ -84,6 +84,24 @@ feature -- Status
 			Result := last_error /= Void
 		end
 
+feature -- Configuration
+
+	set_ffmpeg_path (a_path: READABLE_STRING_GENERAL)
+			-- Set path to ffmpeg executable.
+		do
+			ffmpeg_path := a_path.to_string_32
+		ensure
+			path_set: attached ffmpeg_path as p and then p.same_string_general (a_path)
+		end
+
+	set_ffprobe_path (a_path: READABLE_STRING_GENERAL)
+			-- Set path to ffprobe executable.
+		do
+			ffprobe_path := a_path.to_string_32
+		ensure
+			path_set: attached ffprobe_path as p and then p.same_string_general (a_path)
+		end
+
 feature -- Probe
 
 	probe (a_file: READABLE_STRING_GENERAL): detachable FFMPEG_MEDIA_INFO
@@ -322,7 +340,7 @@ feature {NONE} -- Execution
 			-- Execute command and capture stdout using SIMPLE_PROCESS.
 		do
 			execute (a_cmd)
-			if was_successful and then attached output as o then
+			if was_successful and then attached process_last_output as o then
 				Result := o
 				last_output := Result
 			else
