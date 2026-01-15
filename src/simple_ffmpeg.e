@@ -149,6 +149,31 @@ feature -- Video Operations
 			Result := cli.resize_video (a_input, a_output, a_width, a_height)
 		end
 
+	images_to_video (a_pattern, a_output: READABLE_STRING_GENERAL; a_fps: INTEGER): BOOLEAN
+			-- Create video from image sequence.
+			-- `a_pattern` is printf-style pattern like "frames/frame_%05d.bmp"
+			-- Example: ffmpeg.images_to_video ("frames/frame_%05d.bmp", "output.mp4", 60)
+		require
+			available: is_available
+			pattern_not_empty: not a_pattern.is_empty
+			output_not_empty: not a_output.is_empty
+			valid_fps: a_fps > 0
+		do
+			Result := cli.images_to_video (a_pattern, a_output, a_fps)
+		end
+
+	images_to_video_with_options (a_pattern, a_output: READABLE_STRING_GENERAL;
+	                              a_fps: INTEGER; a_options: FFMPEG_OPTIONS): BOOLEAN
+			-- Create video from image sequence with custom encoding options.
+		require
+			available: is_available
+			pattern_not_empty: not a_pattern.is_empty
+			output_not_empty: not a_output.is_empty
+			valid_fps: a_fps > 0
+		do
+			Result := cli.images_to_video_with_options (a_pattern, a_output, a_fps, a_options)
+		end
+
 feature {NONE} -- Implementation
 
 	cli: FFMPEG_CLI

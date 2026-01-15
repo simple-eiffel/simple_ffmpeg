@@ -236,6 +236,69 @@ feature -- Video Operations
 			end
 		end
 
+	images_to_video (a_pattern, a_output: READABLE_STRING_GENERAL; a_fps: INTEGER): BOOLEAN
+			-- Create video from image sequence.
+			-- `a_pattern` is printf-style pattern like "frames/frame_%05d.bmp"
+			-- Supports BMP, PNG, JPG input formats.
+			-- Output codec determined by extension (.mp4=H.264, .webm=VP9, .avi=MPEG4)
+		require
+			available: is_available
+			pattern_not_empty: not a_pattern.is_empty
+			output_not_empty: not a_output.is_empty
+			valid_fps: a_fps > 0
+		local
+			l_cmd: STRING_32
+		do
+			clear_error
+			if attached ffmpeg_path as fp then
+				create l_cmd.make (400)
+				l_cmd.append (fp)
+				l_cmd.append (" -y -framerate ")
+				l_cmd.append_integer (a_fps)
+				l_cmd.append (" -i %"")
+				l_cmd.append (a_pattern.to_string_32)
+				l_cmd.append ("%" -c:v libx264 -pix_fmt yuv420p -crf 18 %"")
+				l_cmd.append (a_output.to_string_32)
+				l_cmd.append ("%"")
+
+				Result := execute_silent (l_cmd)
+			end
+		end
+
+	images_to_video_with_options (a_pattern, a_output: READABLE_STRING_GENERAL;
+	                              a_fps: INTEGER; a_options: FFMPEG_OPTIONS): BOOLEAN
+			-- Create video from image sequence with custom options.
+		require
+			available: is_available
+			pattern_not_empty: not a_pattern.is_empty
+			output_not_empty: not a_output.is_empty
+			valid_fps: a_fps > 0
+		local
+			l_cmd: STRING_32
+			l_args: STRING_32
+		do
+			clear_error
+			if attached ffmpeg_path as fp then
+				l_args := build_transcode_args (a_options)
+				create l_cmd.make (500)
+				l_cmd.append (fp)
+				l_cmd.append (" -y -framerate ")
+				l_cmd.append_integer (a_fps)
+				l_cmd.append (" -i %"")
+				l_cmd.append (a_pattern.to_string_32)
+				l_cmd.append ("%" ")
+				if not l_args.is_empty then
+					l_cmd.append (l_args)
+					l_cmd.append (" ")
+				end
+				l_cmd.append ("%"")
+				l_cmd.append (a_output.to_string_32)
+				l_cmd.append ("%"")
+
+				Result := execute_silent (l_cmd)
+			end
+		end
+
 	resize_video (a_input, a_output: READABLE_STRING_GENERAL;
 	              a_width, a_height: INTEGER): BOOLEAN
 			-- Resize video to specified dimensions.
