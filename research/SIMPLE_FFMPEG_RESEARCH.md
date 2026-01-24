@@ -1,5 +1,8 @@
 # simple_ffmpeg Research Notes
 
+
+**Date**: 2025-12-26
+
 **Date:** 2025-12-26
 **Status:** Complete
 **Goal:** Design an Eiffel multimedia library wrapping FFmpeg's libav* C libraries
