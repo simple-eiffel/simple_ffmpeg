@@ -1,0 +1,347 @@
+note
+	description: "[
+				SIMPLE_FFMPEG - FFmpeg multimedia library facade (CLI mode)
+		
+				Provides FFmpeg functionality by delegating to ffmpeg.exe/ffprobe.exe
+				via command-line execution. This mode requires ffmpeg.exe in PATH
+				but does not require the FFmpeg SDK to be installed.
+		
+				For SDK mode (native FFmpeg library calls), use simple_ffmpeg_sdk target
+				which requires FFMPEG_SDK environment variable pointing to FFmpeg dev libs.
+		
+				Key Operations:
+				- probe: Get media file metadata (duration, codecs, resolution)
+				- transcode: Convert between formats with optional settings
+				- extract_audio: Extract audio track from video file
+				- extract_frame: Extract single frame as image
+				- resize_video: Resize video to specified dimensions
+		
+				Example:
+					ffmpeg: SIMPLE_FFMPEG
+					create ffmpeg.make
+					if ffmpeg.is_available then
+						if attached ffmpeg.probe ("video.mp4") as info then
+							print ("Duration: " + info.duration.out + " seconds%N")
+							print ("Resolution: " + info.resolution_string + "%N")
+						end
+						ffmpeg.transcode ("input.mp4", "output.webm")
+					end
+	]"
+	author: "Larry Rix"
+	date: "$Date$"
+	revision: "$Revision$"
+
+class interface
+	SIMPLE_FFMPEG
+
+create 
+	make
+			-- Initialize FFmpeg CLI backend.
+		ensure
+			cli_created: cli /= Void
+
+feature -- Access
+
+	generating_type: TYPE [detachable SIMPLE_FFMPEG]
+			-- Type of current object
+			-- (type of which it is a direct instance)
+			-- (from ANY)
+		ensure -- from ANY
+			generating_type_not_void: Result /= Void
+
+	generator: STRING_8
+			-- Name of current object's generating class
+			-- (base class of the type of which it is a direct instance)
+			-- (from ANY)
+		ensure -- from ANY
+			generator_not_void: Result /= Void
+			generator_not_empty: not Result.is_empty
+	
+feature -- Comparison
+
+	frozen deep_equal (a: detachable ANY; b: like arg #1): BOOLEAN
+			-- Are `a` and `b` either both void
+			-- or attached to isomorphic object structures?
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			shallow_implies_deep: standard_equal (a, b) implies Result
+			both_or_none_void: (a = Void) implies (Result = (b = Void))
+			same_type: (Result and (a /= Void)) implies (b /= Void and then a.same_type (b))
+			symmetric: Result implies deep_equal (b, a)
+
+	frozen equal (a: detachable ANY; b: like arg #1): BOOLEAN
+			-- Are `a` and `b` either both void or attached
+			-- to objects considered equal?
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			definition: Result = (a = Void and b = Void) or else ((a /= Void and b /= Void) and then a.is_equal (b))
+
+	frozen is_deep_equal alias "≡≡≡" (other: SIMPLE_FFMPEG): BOOLEAN
+			-- Are `Current` and `other` attached to isomorphic object structures?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			shallow_implies_deep: standard_is_equal (other) implies Result
+			same_type: Result implies same_type (other)
+			symmetric: Result implies other.is_deep_equal (Current)
+
+	is_equal (other: SIMPLE_FFMPEG): BOOLEAN
+			-- Is `other` attached to an object considered
+			-- equal to current object?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			symmetric: Result implies other ~ Current
+			consistent: standard_is_equal (other) implies Result
+
+	frozen standard_equal (a: detachable ANY; b: like arg #1): BOOLEAN
+			-- Are `a` and `b` either both void or attached to
+			-- field-by-field identical objects of the same type?
+			-- Always uses default object comparison criterion.
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			definition: Result = (a = Void and b = Void) or else ((a /= Void and b /= Void) and then a.standard_is_equal (b))
+
+	frozen standard_is_equal alias "≜" (other: SIMPLE_FFMPEG): BOOLEAN
+			-- Is `other` attached to an object of the same type
+			-- as current object, and field-by-field identical to it?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			same_type: Result implies same_type (other)
+			symmetric: Result implies other.standard_is_equal (Current)
+	
+feature -- Status report
+
+	conforms_to (other: ANY): BOOLEAN
+			-- Does type of current object conform to type
+			-- of `other` (as per Eiffel: The Language, chapter 13)?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+
+	same_type (other: ANY): BOOLEAN
+			-- Is type of current object identical to type of `other`?
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			definition: Result = (conforms_to (other) and other.conforms_to (Current))
+	
+feature -- Duplication
+
+	copy (other: SIMPLE_FFMPEG)
+			-- Update current object using fields of object attached
+			-- to `other`, so as to yield equal objects.
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+			type_identity: same_type (other)
+		ensure -- from ANY
+			is_equal: Current ~ other
+
+	frozen deep_copy (other: SIMPLE_FFMPEG)
+			-- Effect equivalent to that of:
+			--		`copy` (`other` . `deep_twin`)
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+		ensure -- from ANY
+			deep_equal: deep_equal (Current, other)
+
+	frozen deep_twin: SIMPLE_FFMPEG
+			-- New object structure recursively duplicated from Current.
+			-- (from ANY)
+		ensure -- from ANY
+			deep_twin_not_void: Result /= Void
+			deep_equal: deep_equal (Current, Result)
+
+	frozen standard_copy (other: SIMPLE_FFMPEG)
+			-- Copy every field of `other` onto corresponding field
+			-- of current object.
+			-- (from ANY)
+		require -- from ANY
+			other_not_void: other /= Void
+			type_identity: same_type (other)
+		ensure -- from ANY
+			is_standard_equal: standard_is_equal (other)
+
+	frozen standard_twin: SIMPLE_FFMPEG
+			-- New object field-by-field identical to `other`.
+			-- Always uses default copying semantics.
+			-- (from ANY)
+		ensure -- from ANY
+			standard_twin_not_void: Result /= Void
+			equal: standard_equal (Result, Current)
+
+	frozen twin: SIMPLE_FFMPEG
+			-- New object equal to `Current`
+			-- `twin` calls `copy`; to change copying/twinning semantics, redefine `copy`.
+			-- (from ANY)
+		ensure -- from ANY
+			twin_not_void: Result /= Void
+			is_equal: Result ~ Current
+	
+feature -- Basic operations
+
+	frozen default: detachable SIMPLE_FFMPEG
+			-- Default value of object's type
+			-- (from ANY)
+
+	frozen default_pointer: POINTER
+			-- Default value of type `POINTER`
+			-- (Avoid the need to write `p`.`default` for
+			-- some `p` of type `POINTER`.)
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+
+	default_rescue
+			-- Process exception for routines with no Rescue clause.
+			-- (Default: do nothing.)
+			-- (from ANY)
+
+	frozen do_nothing
+			-- Execute a null action.
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+	
+feature -- Audio Operations
+
+	extract_audio (a_video, a_audio: READABLE_STRING_GENERAL): BOOLEAN
+			-- Extract audio track from video file.
+		require
+			available: is_available
+			video_not_empty: not a_video.is_empty
+			audio_not_empty: not a_audio.is_empty
+	
+feature -- Metadata
+
+	probe (a_file: READABLE_STRING_GENERAL): detachable FFMPEG_MEDIA_INFO
+			-- Get media file information.
+		require
+			available: is_available
+			file_not_empty: not a_file.is_empty
+	
+feature -- Output
+
+	Io: STD_FILES
+			-- Handle to standard file setup
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			io_not_void: Result /= Void
+
+	out: STRING_8
+			-- New string containing terse printable representation
+			-- of current object
+			-- (from ANY)
+		ensure -- from ANY
+			out_not_void: Result /= Void
+
+	print (o: detachable ANY)
+			-- Write terse external representation of `o`
+			-- on standard output.
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+
+	frozen tagged_out: STRING_8
+			-- New string containing terse printable representation
+			-- of current object
+			-- (from ANY)
+		ensure -- from ANY
+			tagged_out_not_void: Result /= Void
+	
+feature -- Platform
+
+	Operating_environment: OPERATING_ENVIRONMENT
+			-- Objects available from the operating system
+			-- (from ANY)
+		ensure -- from ANY
+			instance_free: class
+			operating_environment_not_void: Result /= Void
+	
+feature -- Status
+
+	has_error: BOOLEAN
+			-- Did last operation fail?
+
+	is_available: BOOLEAN
+			-- Is ffmpeg.exe available in PATH?
+
+	last_error: detachable STRING_32
+			-- Last error message.
+
+	version: STRING_32
+			-- FFmpeg version string.
+	
+feature -- Transcoding
+
+	transcode (a_input, a_output: READABLE_STRING_GENERAL): BOOLEAN
+			-- Transcode with default settings.
+		require
+			available: is_available
+			input_not_empty: not a_input.is_empty
+			output_not_empty: not a_output.is_empty
+
+	transcode_with_options (a_input, a_output: READABLE_STRING_GENERAL; a_options: FFMPEG_OPTIONS): BOOLEAN
+			-- Transcode with specified options.
+		require
+			available: is_available
+			input_not_empty: not a_input.is_empty
+			output_not_empty: not a_output.is_empty
+	
+feature -- Video Operations
+
+	extract_frame (a_video: READABLE_STRING_GENERAL; a_time: REAL_64; a_output: READABLE_STRING_GENERAL): BOOLEAN
+			-- Extract single frame at specified time.
+		require
+			available: is_available
+			video_not_empty: not a_video.is_empty
+			time_non_negative: a_time >= 0.0
+			output_not_empty: not a_output.is_empty
+
+	images_to_video (a_pattern, a_output: READABLE_STRING_GENERAL; a_fps: INTEGER_32): BOOLEAN
+			-- Create video from image sequence.
+			-- `a_pattern` is printf-style pattern like "frames/frame_%05d.bmp"
+			-- Example: ffmpeg.images_to_video ("frames/frame_%05d.bmp", "output.mp4", 60)
+		require
+			available: is_available
+			pattern_not_empty: not a_pattern.is_empty
+			output_not_empty: not a_output.is_empty
+			valid_fps: a_fps > 0
+
+	images_to_video_with_options (a_pattern, a_output: READABLE_STRING_GENERAL; a_fps: INTEGER_32; a_options: FFMPEG_OPTIONS): BOOLEAN
+			-- Create video from image sequence with custom encoding options.
+		require
+			available: is_available
+			pattern_not_empty: not a_pattern.is_empty
+			output_not_empty: not a_output.is_empty
+			valid_fps: a_fps > 0
+
+	resize_video (a_input, a_output: READABLE_STRING_GENERAL; a_width, a_height: INTEGER_32): BOOLEAN
+			-- Resize video to specified dimensions.
+		require
+			available: is_available
+			input_not_empty: not a_input.is_empty
+			output_not_empty: not a_output.is_empty
+			valid_width: a_width > 0
+			valid_height: a_height > 0
+	
+invariant
+	cli_attached: cli /= Void
+
+		-- from ANY
+	reflexive_equality: standard_is_equal (Current)
+	reflexive_conformance: conforms_to (Current)
+
+end -- class SIMPLE_FFMPEG
+
