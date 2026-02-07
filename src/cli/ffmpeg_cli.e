@@ -585,7 +585,6 @@ feature {NONE} -- JSON Parsing (Simple)
 			l_str: STRING_32
 			l_pattern: STRING_32
 			l_start, l_end: INTEGER
-			l_char: CHARACTER_32
 		do
 			-- Try quoted number first (ffprobe often quotes numbers)
 			l_str := parse_json_string (a_json, a_key)
