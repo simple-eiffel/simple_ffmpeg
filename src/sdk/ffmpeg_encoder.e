@@ -34,7 +34,7 @@ feature {NONE} -- Initialization
 				is_open := True
 			else
 				is_open := False
-				last_error := "Failed to create encoder: " + a_output.to_string_32
+				last_error := {STRING_32} "Failed to create encoder: " + a_output.to_string_32
 			end
 		end
 

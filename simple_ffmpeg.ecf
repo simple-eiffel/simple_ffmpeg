@@ -36,7 +36,6 @@
 			<exclude>/testing$</exclude>
 			<exclude>/cli$</exclude>
 		</file_rule>
-		<cluster name="src" location="./src/" recursive="false"/>
 		<cluster name="sdk" location="./src/sdk/" recursive="true"/>
 		<external_include location="$SIMPLE_EIFFEL/simple_ffmpeg/Clib"/>
 		<external_include location="$FFMPEG_SDK/include"/>

@@ -38,7 +38,7 @@ feature {NONE} -- Initialization
 				extract_info
 			else
 				is_open := False
-				last_error := "Failed to open: " + a_file.to_string_32
+				last_error := {STRING_32} "Failed to open: " + a_file.to_string_32
 			end
 		end
 
