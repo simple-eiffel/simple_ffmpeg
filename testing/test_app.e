@@ -16,6 +16,7 @@ feature {NONE} -- Initialization
 			passed := 0
 			failed := 0
 			run_lib_tests
+			run_real_tests
 			print ("%N========================%N")
 			print ("Results: " + passed.out + " passed, " + failed.out + " failed%N")
 			if failed > 0 then
@@ -49,6 +50,19 @@ feature {NONE} -- Test Runners
 			run_test (agent lib_tests.test_all_presets, "test_all_presets")
 			run_test (agent lib_tests.test_reinitialize_ffmpeg, "test_reinitialize_ffmpeg")
 			run_test (agent lib_tests.test_rapid_option_changes, "test_rapid_option_changes")
+		end
+
+	run_real_tests
+			-- FFMPEG_CLI against the real ffmpeg.
+		local
+			t: TEST_FFMPEG_CLI_REAL
+		do
+			create t
+			run_test (agent t.test_finds_ffmpeg_and_ffprobe, "test_finds_ffmpeg_and_ffprobe")
+			run_test (agent t.test_probe_reads_a_real_file, "test_probe_reads_a_real_file")
+			run_test (agent t.test_transcode_writes_a_file, "test_transcode_writes_a_file")
+			run_test (agent t.test_failed_transcode_is_a_failure, "test_failed_transcode_is_a_failure")
+			run_test (agent t.test_failed_probe_gives_nothing, "test_failed_probe_gives_nothing")
 		end
 
 feature {NONE} -- Test Infrastructure

@@ -24,7 +24,7 @@
 		<library name="simple_file" location="$SIMPLE_EIFFEL/simple_file/simple_file.ecf"/>
 		<cluster name="src" location="./src/" recursive="false"/>
 		<cluster name="cli" location="./src/cli/" recursive="true"/>
-		<external_include location="$SIMPLE_EIFFEL/simple_ffmpeg/Clib">
+		<external_include location="$(SIMPLE_EIFFEL)/simple_ffmpeg/Clib">
 			<description>Stub header for CLI mode compilation</description>
 		</external_include>
 	</target>
@@ -37,29 +37,29 @@
 			<exclude>/cli$</exclude>
 		</file_rule>
 		<cluster name="sdk" location="./src/sdk/" recursive="true"/>
-		<external_include location="$SIMPLE_EIFFEL/simple_ffmpeg/Clib"/>
-		<external_include location="$FFMPEG_SDK/include"/>
-		<external_library location="$FFMPEG_SDK/lib/avcodec.lib">
+		<external_include location="$(SIMPLE_EIFFEL)/simple_ffmpeg/Clib"/>
+		<external_include location="$(FFMPEG_SDK)/include"/>
+		<external_library location="$(FFMPEG_SDK)/lib/avcodec.lib">
 			<condition>
 				<platform value="windows"/>
 			</condition>
 		</external_library>
-		<external_library location="$FFMPEG_SDK/lib/avformat.lib">
+		<external_library location="$(FFMPEG_SDK)/lib/avformat.lib">
 			<condition>
 				<platform value="windows"/>
 			</condition>
 		</external_library>
-		<external_library location="$FFMPEG_SDK/lib/avutil.lib">
+		<external_library location="$(FFMPEG_SDK)/lib/avutil.lib">
 			<condition>
 				<platform value="windows"/>
 			</condition>
 		</external_library>
-		<external_library location="$FFMPEG_SDK/lib/swscale.lib">
+		<external_library location="$(FFMPEG_SDK)/lib/swscale.lib">
 			<condition>
 				<platform value="windows"/>
 			</condition>
 		</external_library>
-		<external_library location="$FFMPEG_SDK/lib/swresample.lib">
+		<external_library location="$(FFMPEG_SDK)/lib/swresample.lib">
 			<condition>
 				<platform value="windows"/>
 			</condition>

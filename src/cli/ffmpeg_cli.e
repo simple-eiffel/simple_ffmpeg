@@ -342,9 +342,9 @@ feature {NONE} -- Detection
 				ffmpeg_path := "ffmpeg"
 				parse_version (l_result)
 			else
-				-- Try common Windows locations
+				-- Try common locations
 				clear_error
-				l_result := execute_capture ("where ffmpeg")
+				l_result := execute_capture (path_lookup_command + " ffmpeg")
 				if not has_error and then l_result /= Void and then not l_result.is_empty then
 					ffmpeg_path := l_result.split ('%N').first
 					if attached ffmpeg_path as fp then
@@ -360,7 +360,7 @@ feature {NONE} -- Detection
 				ffprobe_path := "ffprobe"
 			else
 				clear_error
-				l_result := execute_capture ("where ffprobe")
+				l_result := execute_capture (path_lookup_command + " ffprobe")
 				if not has_error and then l_result /= Void and then not l_result.is_empty then
 					ffprobe_path := l_result.split ('%N').first
 					if attached ffprobe_path as fp then
@@ -370,6 +370,16 @@ feature {NONE} -- Detection
 			end
 
 			clear_error  -- Don't keep detection errors
+		end
+
+	path_lookup_command: STRING
+			-- The program that finds another one on PATH.
+		do
+			if {PLATFORM}.is_windows then
+				Result := "where"
+			else
+				Result := "which"
+			end
 		end
 
 	parse_version (a_output: READABLE_STRING_GENERAL)
@@ -403,7 +413,8 @@ feature {NONE} -- Execution
 			-- Execute command and capture stdout using SIMPLE_PROCESS.
 		do
 			execute (a_cmd)
-			if was_successful and then attached process_last_output as o then
+				-- `was_successful' says only that the program ran; it must also exit 0.
+			if was_successful and then last_exit_code = 0 and then attached process_last_output as o then
 				Result := o
 				last_output := Result
 			else
@@ -420,7 +431,7 @@ feature {NONE} -- Execution
 		do
 			clear_error
 			execute (a_cmd)
-			Result := was_successful
+			Result := was_successful and then last_exit_code = 0
 			if not Result then
 				set_error ("Command failed with exit code " + last_exit_code.out)
 			end
